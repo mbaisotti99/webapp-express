@@ -5,13 +5,13 @@ const index = (req, resp) => {
     connection.query(sql, (err, movies) => {
         if (err) {
             return (
-                resp.status(500).json(
-                    {
-                        message: "Errore interno server",
-                        errore: err.stack
-                    }
+                    next(new Error("Errore interno del server"))
+                    // resp.status(500).json({
+                    //     message: "Errore Server"
+                    // })
+                
                 )
-            )
+            
         } else {
             return (
                 resp.status(200).json({
@@ -23,7 +23,7 @@ const index = (req, resp) => {
     })
 }
 
-const show = (req, resp) => {
+const show = (req, resp, next) => {
     const sql = `
         SELECT *
         FROM movies
@@ -32,8 +32,15 @@ const show = (req, resp) => {
     const id = req.params.id
     connection.query(sql, [id], (err, movie) => {
         if (err) {
-            resp.status(500).json({
-                message: "Errore interno Server"
+            return (
+                next(new Error("Errore interno del server"))
+                // resp.status(500).json({
+                //     message: "Errore Server"
+                // })
+            )
+        } else if (movie.length === 0){
+            resp.status(404).json({
+                message: "Film non trovato"
             })
         } else {
 
@@ -48,9 +55,10 @@ const show = (req, resp) => {
             connection.query(slqComp, [id], (err, reviews) => {
                 if (err) {
                     return (
-                        resp.status(500).json({
-                            message: "Errore Server"
-                        })
+                        next(new Error("Errore interno del server"))
+                        // resp.status(500).json({
+                        //     message: "Errore Server"
+                        // })
                     )
                 } else {
                     resp.status(200).json({
@@ -58,7 +66,7 @@ const show = (req, resp) => {
                         data: {
                             ...movie[0],
                             reviews
-                        }
+                        },
                     })
                 }
             })
@@ -66,5 +74,11 @@ const show = (req, resp) => {
     })
 }
 
-module.exports = {index, show}
+const notFound = (req, resp) =>{
+    resp.status(404).json({
+        message: "Route not found"
+    })
+}
+
+module.exports = {index, show, notFound}
 

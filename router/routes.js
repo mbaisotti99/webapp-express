@@ -1,4 +1,4 @@
-const {index, show} = require("../controllers/functions")
+const { index, show } = require("../controllers/functions")
 const express = require("express")
 const router = express.Router()
 
