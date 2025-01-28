@@ -74,11 +74,31 @@ const show = (req, resp, next) => {
     })
 }
 
+const addReview = (req, resp, next) =>{
+
+    const id = req.params.id 
+    const {user, vote, text} = req.body
+    const sql = `
+        INSERT INTO reviews (movie_id, name, vote, text, created_at, updated_at)
+        VALUES (?, ?, ?, ?, NOW(), NOW());
+    `
+
+    connection.query(sql, [id, user, vote, text], (err, result) =>{
+        if (err) {
+            return next(new Error("Errore interno del server"))
+        } else {
+            resp.status(200).json({
+                message: "Recensione Inserita"
+            })
+        }
+    })
+}
+
 const notFound = (req, resp) =>{
     resp.status(404).json({
         message: "Route not found"
     })
 }
 
-module.exports = {index, show, notFound}
+module.exports = {index, show, notFound, addReview}
 
