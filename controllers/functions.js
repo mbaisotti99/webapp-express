@@ -1,5 +1,29 @@
-const { default: slugify } = require("slugify")
+// const { default: slugify } = require("slugify")
 const connection = require("../data/movies-db")
+
+// const search = (req, resp, next) => {
+//     const sql = `
+//         SELECT * 
+//         FROM movies
+//         WHERE title LIKE ?"
+//     `
+//     const {search} = req.query
+//     const searchTerm = `%${search}%`;
+//     connection.query(sql, [searchTerm], (err, result) =>{
+//         if (err) {
+//             return next(new Error(err.message))
+//         } else{
+//             resp.status(200).json({
+//                 message: "Ricerca Effettuata",
+//                 data: result
+//             })
+//         }
+//     })
+// }
+
+
+
+// ROTTA PRINCIPALE RICHIEDE TUTTI I LIBRI 
 
 const index = (req, resp) => {
     const sql = "SELECT * FROM `movies`"
@@ -7,10 +31,6 @@ const index = (req, resp) => {
         if (err) {
             return (
                 next(new Error("Errore interno del server"))
-                // resp.status(500).json({
-                //     message: "Errore Server"
-                // })
-
             )
 
         } else {
@@ -24,6 +44,9 @@ const index = (req, resp) => {
     })
 }
 
+
+// RICHIEDI UN LIBRO SPECIFICO TRAMITE ID
+
 const show = (req, resp, next) => {
     const sql = `
         SELECT *
@@ -35,13 +58,14 @@ const show = (req, resp, next) => {
         if (err) {
             return (
                 next(new Error("Errore interno del server"))
-                // resp.status(500).json({
-                //     message: "Errore Server"
-                // })
             )
         } else if (movie.length === 0) {
             resp.status(404).json({
                 message: "Film non trovato"
+            })
+        } else if (isNaN(id)) {
+            resp.status(500).json({
+                message: "Id non corretto"
             })
         } else {
 
@@ -52,21 +76,10 @@ const show = (req, resp, next) => {
                 WHERE movies.id = ?
             `
 
-            // `SELECT reviews.name as reviewer, reviews.vote, reviews.text
-            //                 FROM movies 
-            //                 JOIN movie_reviews
-            //                 ON movie_reviews.movie_id = movies.id
-            //                 JOIN reviews 
-            //                 ON movie_reviews.review_id = reviews.id
-            //                 WHERE movies.id = ?
-            //                 `
             connection.query(slqComp, [id], (err, reviews) => {
                 if (err) {
                     return (
                         next(new Error("Errore interno del server"))
-                        // resp.status(500).json({
-                        //     message: "Errore Server"
-                        // })
                     )
                 } else {
                     resp.status(200).json({
@@ -81,6 +94,10 @@ const show = (req, resp, next) => {
         }
     })
 }
+
+
+
+// AGGIUNGI RECENSIONE
 
 const addReview = (req, resp, next) => {
 
@@ -102,6 +119,10 @@ const addReview = (req, resp, next) => {
     })
 }
 
+
+
+// AGGIUNGI NUOVO FILM 
+
 const storeMovie = (req, resp, next) => {
 
 
@@ -112,11 +133,11 @@ const storeMovie = (req, resp, next) => {
     //     strict: true
     // })
 
-    let id = Math.floor(Math.random()* 99 + 1)
+    // let id = Math.floor(Math.random()* 99 + 1)
 
     const sql = `
-        INSERT INTO movies (id, title, director, genre, abstract, images)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO movies (title, director, genre, abstract, images)
+        VALUES (?, ?, ?, ?, ?)
     `
 
     connection.query(sql, [id, title, director, genre, abstract, imgName], (err, result) => {
@@ -132,6 +153,11 @@ const storeMovie = (req, resp, next) => {
 })
 
 }
+
+
+// ROTTA NOT FOUND 
+
+
 
 const notFound = (req, resp) => {
     resp.status(404).json({
