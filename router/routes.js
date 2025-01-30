@@ -9,6 +9,6 @@ router.get("/:id", show)
 
 router.post("/:id/review", addReview)
 
-router.post("/add", upload.single("file"), storeMovie)
+router.post("/add", upload.single("images"), storeMovie)
 
 module.exports = router
