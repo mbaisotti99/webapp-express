@@ -1,32 +1,55 @@
 // const { default: slugify } = require("slugify")
 const connection = require("../data/movies-db")
 
-// const search = (req, resp, next) => {
-//     const sql = `
-//         SELECT * 
-//         FROM movies
-//         WHERE title LIKE ?"
-//     `
-//     const {search} = req.query
-//     const searchTerm = `%${search}%`;
-//     connection.query(sql, [searchTerm], (err, result) =>{
-//         if (err) {
-//             return next(new Error(err.message))
-//         } else{
-//             resp.status(200).json({
-//                 message: "Ricerca Effettuata",
-//                 data: result
-//             })
-//         }
-//     })
-// }
+const search = (req, resp, next) => {
+    const sql = `
+        SELECT * 
+        FROM movies
+        WHERE title LIKE ?"
+    `
+    const { search } = req.query
+    const searchTerm = `%${search}%`;
+
+    connection.query(sql, [searchTerm], (err, result) => {
+        if (err) {
+            return next(new Error(err.message))
+        } else {
+            resp.status(200).json({
+                message: "Ricerca Effettuata",
+                data: result,
+                sql: sql
+            })
+        }
+    })
+}
 
 
 
 // ROTTA PRINCIPALE RICHIEDE TUTTI I LIBRI 
 
-const index = (req, resp) => {
-    const sql = "SELECT * FROM `movies`"
+const index = (req, resp, next) => {
+
+    let sql = `SELECT * 
+        FROM movies `
+
+    let searchBy
+    let searchByValue
+    if (req.query.title) {
+        searchByValue = req.query.title;
+        searchBy = "title";
+    } else if (req.query.genre){
+        searchByValue = req.query.genre;
+        searchBy = "genre";
+    } else if (req.query.director){
+        searchByValue = req.query.director
+        searchBy = "director"
+    }
+
+    // console.log(title);
+    
+
+    const searchTerm = `%${searchByValue}%`;
+
     connection.query(sql, (err, movies) => {
         if (err) {
             return (
@@ -34,12 +57,26 @@ const index = (req, resp) => {
             )
 
         } else {
-            return (
-                resp.status(200).json({
-                    message: "Dati Trovati",
-                    data: movies
+            if (searchByValue) {
+                sql += `WHERE ${searchBy} LIKE ?`
+                connection.query(sql, [searchTerm], (error, movie) => {
+                    return (
+                        resp.status(200).json({
+                            message: "Dato Trovato",
+                            data: movie,
+                            sqlindex: sql
+                        })
+                    )
                 })
-            )
+            } else {
+                return (
+                    resp.status(200).json({
+                        message: "Dati Trovati",
+                        data: movies,
+                        sqlindex: sql
+                    })
+                )
+            }
         }
     })
 }
@@ -141,16 +178,16 @@ const storeMovie = (req, resp, next) => {
     `
 
     connection.query(sql, [id, title, director, genre, abstract, imgName], (err, result) => {
-    if (err) {
-        return next(new Error(err.message))
-    } else {
-        return (
-            resp.status(201).json({
-                message: "Libro caricato"
-            })
-        )
-    }
-})
+        if (err) {
+            return next(new Error(err.message))
+        } else {
+            return (
+                resp.status(201).json({
+                    message: "Libro caricato"
+                })
+            )
+        }
+    })
 
 }
 
